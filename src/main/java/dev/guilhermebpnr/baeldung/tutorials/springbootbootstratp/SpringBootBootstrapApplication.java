@@ -1,4 +1,4 @@
-package dev.guilhermebpnr.baeldung.tutorials.springbootbootstratp.springbootbootstrap;
+package dev.guilhermebpnr.baeldung.tutorials.springbootbootstratp;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
