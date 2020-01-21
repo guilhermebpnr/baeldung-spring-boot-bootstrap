@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 import java.util.List;
+import java.util.Random;
 
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,15 +47,66 @@ public class SpringBootBootstrapLiveTest {
         assertThat(response.as(List.class).size()).isGreaterThan(0);
     }
 
-    //whenGetCreatedBookById_thenOK
+    @Test
+    public void whenGetCreatedBookById_thenOK() {
+        final Book book = createRandomBook();
+        String location = createBookAsUri(book);
+        System.out.println(location);
+        final Response response = RestAssured.get(location);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(response.jsonPath().get("title").toString()).isEqualTo(book.getTitle());
+    }
 
-    //whenGetNotExistBookById_thenNotFound
+    @Test
+    public void whenGetNotExistBookById_thenNotFound() {
+        Response response = RestAssured.get(API_ROOT + "/" + new Random().nextLong());
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
+    }
 
-    //whenCreateNewBook_thenCreated
+    @Test
+    public void whenCreatedNewBook_thenCreated() {
+        Book book = createRandomBook();
+        Response response = RestAssured.given()
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .body(book)
+                .post(API_ROOT);
 
-    //whenInvalidBook_thenError
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+    }
 
-    //whenUpdateCreatedBook_thenUpdated
+    @Test
+    public void whenInvalidBook_thenError() {
+        Book book = createRandomBook();
+        book.setAuthor(null);
+        Response response = RestAssured.given()
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .body(book)
+                .post(API_ROOT);
+        assertThat(response);
+    }
 
-    //whenDeleteCreatedBook_thenOk
+    @Test
+    public void whenUpdateCreatedBook_thenUpdated() {
+        Book book = createRandomBook();
+        String location = createBookAsUri(book);
+        System.out.println(location.split(API_ROOT)[1]);
+        book.setId(Long.parseLong(location.split(API_ROOT + "/")[1]));
+        book.setAuthor("New Author");
+        Response response = RestAssured.given()
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .body(book)
+                .put(location);
+         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+         assertThat(response.jsonPath().get("author").toString()).isEqualTo("New Author");
+    }
+
+    @Test
+    public void whenDeleteCreatedBook_thenOk() {
+        Book book = createRandomBook();
+        String location = createBookAsUri(book);
+        Response response = RestAssured.delete(location);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        response = RestAssured.get(location);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
+    }
 }
